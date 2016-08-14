@@ -6,6 +6,7 @@ Byte: Type definition of a byte (8 bit unsigned int)
 ByteVector: Type defined as a vector of Bytes.
 
 Text: Base class for a sequence of bytes. Includes some useful methods for such sequences.
+
 AsciiText: A Text constructed from an ascii encoded string.
 
 HexText: A Text constructed from an hex encoded string.
