@@ -46,6 +46,13 @@ class Text
       {
          return characters.size();
       }
+      /// Convert to a hex encoded string.
+      std::string ToHexString() const
+      {
+         std::string result;
+         boost::algorithm::hex(characters, std::back_inserter(result));
+         return result;
+      }
       /// Convert to a string with printable characters.
       /// Any non-printable character is replaced with a space.
       std::string ToString() const
@@ -55,13 +62,6 @@ class Text
                characters.begin(), characters.end(),
                result.begin(),
                [](Byte a)->char{return (! std::iscntrl(a)?(char)a:' ');} );
-         return result;
-      }
-      /// Convert to a hex encoded string.
-      std::string ToHexString() const
-      {
-         std::string result;
-         boost::algorithm::hex(characters, std::back_inserter(result));
          return result;
       }
    protected:
