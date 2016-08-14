@@ -42,7 +42,7 @@ class Text
          return characters.size();
       }
       /// Convert to a string with printable characters.
-      /// Any non-printable character is replace with a space.
+      /// Any non-printable character is replaced with a space.
       std::string ToString() const
       {
          std::string result(characters.size(),'\0');
