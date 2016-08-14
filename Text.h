@@ -37,7 +37,12 @@ class Text
 
          return result;
       }
-      ByteVector::size_type size() const
+      /// Set all bytes in the text to the supplied byte.
+      void Fill(Byte a)
+      {
+         std::fill(characters.begin(),characters.end(),a);
+      }
+      ByteVector::size_type Size() const
       {
          return characters.size();
       }
@@ -58,10 +63,6 @@ class Text
          std::string result;
          boost::algorithm::hex(characters, std::back_inserter(result));
          return result;
-      }
-      void ZeroAllBytes()
-      {
-         std::fill(characters.begin(),characters.end(),0);
       }
    protected:
       Text(ByteVector v): characters(v){}
