@@ -1,6 +1,6 @@
 #ifndef Text_h
 #define Text_h
-#include <algorithm> // std::min, std::transform
+#include <algorithm> // std::fill, std::min, std::transform
 #include <cctype> // std::iscntrl
 #include <iterator> // std::back_inserter
 #include <string>
@@ -61,7 +61,7 @@ class Text
       }
       void ZeroAllBytes()
       {
-         characters = ByteVector(characters.size(),0);
+         std::fill(characters.begin(),characters.end(),0);
       }
    protected:
       Text(ByteVector v): characters(v){}
