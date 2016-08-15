@@ -1,5 +1,6 @@
 #ifndef Text_h
 #define Text_h
+
 #include <algorithm> // std::fill, std::min, std::transform
 #include <cctype> // std::iscntrl
 #include <iterator> // std::back_inserter
