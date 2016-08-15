@@ -1,7 +1,7 @@
 #ifndef Text_h
 #define Text_h
 
-#include <algorithm> // std::fill, std::min, std::transform
+#include <algorithm> // std::fill, std::min, std::replace, std::transform
 #include <cctype> // std::iscntrl
 #include <iterator> // std::back_inserter
 #include <string>
@@ -42,6 +42,11 @@ class Text
       void Fill(Byte a)
       {
          std::fill(characters.begin(),characters.end(),a);
+      }
+      /// Replace all what's with with's.
+      void Replace(Byte what, Byte with)
+      {
+         std::replace(characters.begin(),characters.end(),what,with);
       }
       ByteVector::size_type Size() const
       {
