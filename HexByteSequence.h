@@ -1,14 +1,14 @@
-#ifndef HexText_h
-#define HexText_h
+#ifndef HexByteSequence_h
+#define HexByteSequence_h
 
-#include "Text.h"
+#include "ByteSequence.h"
 
-/// A sequence of hex encoded bytes is also a Text.
-class HexText: public Text
+/// A sequence of hex encoded bytes is also a ByteSequence.
+class HexByteSequence: public ByteSequence
 {
    public:
-      HexText(const char* hex_encoded_string)
-         :Text(ToByteVector(hex_encoded_string))
+      HexByteSequence(const char* hex_encoded_string)
+         :ByteSequence(ToByteVector(hex_encoded_string))
       {
       }
 };

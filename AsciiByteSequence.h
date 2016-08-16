@@ -1,17 +1,17 @@
-#ifndef AsciiText_h
-#define AsciiText_h
+#ifndef AsciiByteSequence_h
+#define AsciiByteSequence_h
 
 #include <cstring> // std::strlen
 
+#include "ByteSequence.h"
 #include "ByteVector.h"
-#include "Text.h"
 
-/// A sequence of ascii encoded bytes is also a Text.
-class AsciiText: public Text
+/// A sequence of ascii encoded bytes is also a ByteSequence.
+class AsciiByteSequence: public ByteSequence
 {
    public:
-      AsciiText(const char* ascii_encoded_string)
-         :Text(ByteVector(
+      AsciiByteSequence(const char* ascii_encoded_string)
+         :ByteSequence(ByteVector(
                   ascii_encoded_string,
                   ascii_encoded_string + std::strlen(ascii_encoded_string)))
    {

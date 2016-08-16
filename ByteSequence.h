@@ -1,5 +1,5 @@
-#ifndef Text_h
-#define Text_h
+#ifndef ByteSequence_h
+#define ByteSequence_h
 
 #include <algorithm> // std::fill, std::min, std::replace, std::transform
 #include <cctype> // std::iscntrl
@@ -11,8 +11,8 @@
 #include "Byte.h"
 #include "ByteVector.h"
 
-/// A sequence of bytes is a Text.
-class Text
+/// A sequence of bytes is a ByteSequence.
+class ByteSequence
 {
    public:
       Byte operator[](ByteVector::size_type i) const
@@ -23,13 +23,13 @@ class Text
       {
          return characters.at(i);
       }
-      /// xor two strings (this and s) of possibly different lengths
-      Text operator^(const Text& s) const
+      /// xor two sequences of bytes (this and s) of possibly different lengths
+      ByteSequence operator^(const ByteSequence& s) const
       {
          const ByteVector::size_type N(
                std::min(characters.size(),s.characters.size()));
 
-         Text result(N);
+         ByteSequence result(N);
 
          std::transform( characters.begin(), characters.begin()+N,
                s.characters.begin(),
@@ -71,7 +71,7 @@ class Text
          return result;
       }
    protected:
-      Text(ByteVector v): characters(v){}
+      ByteSequence(ByteVector v): characters(v){}
       static ByteVector ToByteVector(const char* hex_encoded_string)
       {
          ByteVector result;
@@ -82,6 +82,6 @@ class Text
       }
    private:
       ByteVector characters;
-      Text(ByteVector::size_type size = 0):characters(size) {}
+      ByteSequence(ByteVector::size_type size = 0):characters(size) {}
 };
 #endif
