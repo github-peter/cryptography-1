@@ -38,7 +38,7 @@ class ByteSequence
 
          return result;
       }
-      /// Set all bytes in the text to the supplied byte.
+      /// Set all bytes to the supplied byte.
       void Fill(Byte a)
       {
          std::fill(characters.begin(),characters.end(),a);
