@@ -52,6 +52,19 @@ class ByteSequence
       {
          return characters.size();
       }
+      /// Extract part of this sequence as a new sequence.
+      /// The caller is responsible for ensuring that the arguments are
+      /// reasonable for this sequence.
+      /// @param start The start index of the extracted sequence.
+      /// @param length The length of the extracted sequence. 
+      ByteSequence SubSequence(
+            ByteVector::size_type start,
+            ByteVector::size_type length) const
+      {
+         return ByteSequence(ByteVector(
+                  characters.begin()+start,
+                  characters.begin()+start+length));
+      }
       /// Convert to a hex encoded string.
       std::string ToHexString() const
       {
