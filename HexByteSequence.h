@@ -8,7 +8,7 @@ class HexByteSequence: public ByteSequence
 {
    public:
       HexByteSequence(const char* hex_encoded_string)
-         :ByteSequence(ToByteVector(hex_encoded_string))
+         :ByteSequence(DecodeHexStringToByteVector(hex_encoded_string))
       {
       }
 };

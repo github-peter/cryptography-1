@@ -15,6 +15,7 @@
 class ByteSequence
 {
    public:
+      ByteSequence(ByteVector v): characters(v){}
       Byte operator[](ByteVector::size_type i) const
       {
          return characters.at(i);
@@ -65,6 +66,10 @@ class ByteSequence
                   characters.begin()+start,
                   characters.begin()+start+length));
       }
+      ByteVector ToByteVector() const
+      {
+         return characters;
+      }
       /// Convert to a hex encoded string.
       std::string ToHexString() const
       {
@@ -84,8 +89,8 @@ class ByteSequence
          return result;
       }
    protected:
-      ByteSequence(ByteVector v): characters(v){}
-      static ByteVector ToByteVector(const char* hex_encoded_string)
+      static ByteVector DecodeHexStringToByteVector(
+            const char* hex_encoded_string)
       {
          ByteVector result;
          boost::algorithm::unhex(
