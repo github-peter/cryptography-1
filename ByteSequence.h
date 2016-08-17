@@ -48,6 +48,13 @@ class ByteSequence
                appendix.characters.end(),
                std::inserter(characters, characters.end()));
       }
+      /// Erase some number of bytes from the end of the sequence.
+      void EraseFromEnd(ByteVector::size_type n)
+      {
+         characters.erase(
+               characters.end()-n,
+               characters.end());
+      }
       /// Set all bytes to the supplied byte.
       void Fill(Byte a)
       {
