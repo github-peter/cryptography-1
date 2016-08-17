@@ -49,11 +49,14 @@ class ByteSequence
                std::inserter(characters, characters.end()));
       }
       /// Erase some number of bytes from the end of the sequence.
-      void EraseFromEnd(ByteVector::size_type n)
+      void EraseFromEnd(const ByteVector::size_type& n)
       {
-         characters.erase(
-               characters.end()-n,
-               characters.end());
+         if( n < characters.size() )
+            characters.erase(
+                  characters.end()-n,
+                  characters.end());
+         else
+            characters.clear();
       }
       /// Set all bytes to the supplied byte.
       void Fill(Byte a)
