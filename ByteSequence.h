@@ -70,17 +70,23 @@ class ByteSequence
          return characters.size();
       }
       /// Extract part of this sequence as a new sequence.
-      /// The caller is responsible for ensuring that the arguments are
-      /// reasonable for this sequence.
-      /// @param start The start index of the extracted sequence.
+      /// If the arguments imply a range larger than the size of this sequence,
+      /// then the extracted part ends when this sequence ends.
+      /// @param start The start index in this sequence where the extracted
+      /// sequence begins.
       /// @param length The length of the extracted sequence. 
       ByteSequence SubSequence(
             ByteVector::size_type start,
             ByteVector::size_type length) const
       {
-         return ByteSequence(ByteVector(
-                  characters.begin()+start,
-                  characters.begin()+start+length));
+         if( characters.size() > start+length )
+            return ByteSequence(ByteVector(
+                     characters.begin()+start,
+                     characters.begin()+start+length));
+         else
+            return ByteSequence(ByteVector(
+                     characters.begin()+start,
+                     characters.end()));
       }
       ByteVector ToByteVector() const
       {
