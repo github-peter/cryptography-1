@@ -1,9 +1,9 @@
 #ifndef ByteSequence_h
 #define ByteSequence_h
 
-#include <algorithm> // std::fill, std::min, std::replace, std::transform
+#include <algorithm> // std::fill, std::min, std::move, std::replace, std::transform
 #include <cctype> // std::iscntrl
-#include <iterator> // std::back_inserter
+#include <iterator> // std::back_inserter, std::inserter
 #include <string>
 
 #include <boost/algorithm/hex.hpp>
@@ -38,6 +38,15 @@ class ByteSequence
                [](Byte a,Byte b)->Byte{return a^b;} );
 
          return result;
+      }
+      /// Append another sequence to this.
+      void Append(ByteSequence appendix)
+      {
+         characters.reserve(characters.size() + appendix.characters.size() );
+         std::move(
+               appendix.characters.begin(),
+               appendix.characters.end(),
+               std::inserter(characters, characters.end()));
       }
       /// Set all bytes to the supplied byte.
       void Fill(Byte a)
