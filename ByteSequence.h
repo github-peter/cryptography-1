@@ -98,13 +98,12 @@ class ByteSequence
       /// Convert to a hex encoded string.
       std::string ToHexString() const
       {
-         static const char* const hx = "0123456789ABCDEF";
          std::string result;
          result.reserve( characters.size()*2 );
          for( Byte b : characters )
          {
-            result.push_back( hx[b >> 4] );
-            result.push_back( hx[b & 15] );
+            result.push_back( hexchars[b >> 4] );
+            result.push_back( hexchars[b & 15] );
          }
          return result;
       }
@@ -123,14 +122,12 @@ class ByteSequence
       static ByteVector DecodeHexStringToByteVector(
             std::string hex_encoded_string)
       {
-         static const char* const hx = "0123456789ABCDEF";
-   
          const auto len(hex_encoded_string.size());
          if(len & 1)
             throw std::invalid_argument(
                   "ByteSequence::DecodeHexStringToByteVector: Argument has"
                   " odd length.");
-         // Need uppercase since we look into hx.
+         // Need uppercase since we look into hexchars.
          std::transform(
                hex_encoded_string.begin(),
                hex_encoded_string.end(),
@@ -143,8 +140,8 @@ class ByteSequence
          {
             const char a(hex_encoded_string[i]);
             const char b(hex_encoded_string[i + 1]);
-            const char* p = std::lower_bound(hx, hx + 16, a);
-            const char* q = std::lower_bound(hx, hx + 16, b);
+            const char* p = std::lower_bound(hexchars, hexchars + 16, a);
+            const char* q = std::lower_bound(hexchars, hexchars + 16, b);
             
             if(*p != a)
                throw std::invalid_argument(
@@ -158,11 +155,12 @@ class ByteSequence
                         "ByteSequence::DecodeHexStringToByteVector: The")
                      +" 2:nd character '"+b+"' is not a hex digit.");
 
-            result.push_back(((p - hx) << 4) | (q - hx));
+            result.push_back(((p - hexchars) << 4) | (q - hexchars));
          }
          return result;
       }
    private:
+      static constexpr const char* const hexchars = "0123456789ABCDEF";
       ByteVector characters;
       ByteSequence(ByteVector::size_type size = 0):characters(size) {}
 };
