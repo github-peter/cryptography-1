@@ -1,12 +1,12 @@
 #ifndef ByteSequence_h
 #define ByteSequence_h
 
-#include <algorithm> // std::fill, std::min, std::move, std::replace, std::transform
-#include <cctype> // std::iscntrl
-#include <iterator> // std::back_inserter, std::inserter
+#include <algorithm>
+#include <cctype>
+#include <functional>
+#include <iterator>
+#include <stdexcept>
 #include <string>
-
-#include <boost/algorithm/hex.hpp>
 
 #include "Byte.h"
 #include "ByteVector.h"
@@ -98,8 +98,14 @@ class ByteSequence
       /// Convert to a hex encoded string.
       std::string ToHexString() const
       {
+         static const char* const hx = "0123456789ABCDEF";
          std::string result;
-         boost::algorithm::hex(characters, std::back_inserter(result));
+         result.reserve( characters.size()*2 );
+         for( Byte b : characters )
+         {
+            result.push_back( hx[b >> 4] );
+            result.push_back( hx[b & 15] );
+         }
          return result;
       }
       /// Convert to a string with printable characters.
@@ -115,12 +121,45 @@ class ByteSequence
       }
    protected:
       static ByteVector DecodeHexStringToByteVector(
-            const char* hex_encoded_string)
+            std::string hex_encoded_string)
       {
+         static const char* const hx = "0123456789ABCDEF";
+   
+         const auto len(hex_encoded_string.size());
+         if(len & 1)
+            throw std::invalid_argument(
+                  "ByteSequence::DecodeHexStringToByteVector: Argument has"
+                  " odd length.");
+         // Need uppercase since we look into hx.
+         std::transform(
+               hex_encoded_string.begin(),
+               hex_encoded_string.end(),
+               hex_encoded_string.begin(),
+               std::ptr_fun<int, int>(std::toupper));
+
          ByteVector result;
-         boost::algorithm::unhex(
-               hex_encoded_string,
-               std::back_inserter(result));
+         result.reserve(len/2);
+         for( std::string::size_type i(0); i < len; i += 2 )
+         {
+            const char a(hex_encoded_string[i]);
+            const char b(hex_encoded_string[i + 1]);
+            const char* p = std::lower_bound(hx, hx + 16, a);
+            const char* q = std::lower_bound(hx, hx + 16, b);
+            
+            if(*p != a)
+               throw std::invalid_argument(
+                     std::string(
+                        "ByteSequence::DecodeHexStringToByteVector: The")
+                     +" 1:st character '"+a+"' is not a hex digit.");
+
+            if(*q != b)
+               throw std::invalid_argument(
+                     std::string(
+                        "ByteSequence::DecodeHexStringToByteVector: The")
+                     +" 2:nd character '"+b+"' is not a hex digit.");
+
+            result.push_back(((p - hx) << 4) | (q - hx));
+         }
          return result;
       }
    private:
