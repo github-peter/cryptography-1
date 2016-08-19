@@ -4,35 +4,35 @@
 #include "Byte.h"
 #include "ByteSequence.h"
 #include "ByteVector.h"
+#include "PRP.h"
 
 #include <stdexcept>
 
 /// 128-bit AES PRP.
 /// From FIPS 197: http://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
-class AES
+class AES: public PRP
 {
    public:
+      /// @param Key A key sequence with 16 bytes.
+      AES(ByteSequence Key)
+         :key(Key),k(Key.ToByteVector())
+      {
+         if( 16 != Key.Size() )
+         {
+            throw std::invalid_argument(
+                  "AES: Key sequence not with 16 bytes");
+         }
+         expand_key(k);
+      }
       /// @param in A cipher sequence with 16 bytes.
-      /// @param in A key sequence with 16 bytes.
       /// @result A sequence with 16 bytes.
-      static ByteSequence Decrypt(
-            const ByteSequence& in,
-            const ByteSequence& key )
+      ByteSequence Decrypt(const ByteSequence& in) const
       {
          if( 16 != in.Size() )
          {
             throw std::invalid_argument(
                   "AES::Decrypt: Cipher sequence not with 16 bytes");
          }
-         if( 16 != key.Size() )
-         {
-            throw std::invalid_argument(
-                  "AES::Decrypt: Key sequence not with 16 bytes");
-         }
-
-         ByteVector k(key.ToByteVector());
-         expand_key(k);
-
          ByteVector state(in.ToByteVector());
 
          AddRoundKey(state, &k[10*16] );
@@ -49,26 +49,14 @@ class AES
          return ByteSequence(state);
       }
       /// @param in A plaintext sequence with 16 bytes.
-      /// @param in A key sequence with 16 bytes.
       /// @result A sequence with 16 bytes.
-      static ByteSequence Encrypt(
-            const ByteSequence& in,
-            const ByteSequence& key )
+      ByteSequence Encrypt(const ByteSequence& in) const
       {
          if( 16 != in.Size() )
          {
             throw std::invalid_argument(
                   "AES::Encrypt: Plaintext sequence not with 16 bytes");
          }
-         if( 16 != key.Size() )
-         {
-            throw std::invalid_argument(
-                  "AES::Encrypt: Key sequence not with 16 bytes");
-         }
-
-         ByteVector k(key.ToByteVector());
-         expand_key(k);
-
          ByteVector state(in.ToByteVector());
 
          AddRoundKey(state, &k[0]);
@@ -85,7 +73,16 @@ class AES
 
          return ByteSequence(state);
       }
+      ByteVector::size_type GetBlockSize() const
+      {
+         return 16;
+      }
    private:
+      /// The 16 byte (128 bit) key.
+      ByteSequence key;
+      /// The 16 byte key, expanded during construction to 176 bytes using
+      /// Rijndael's key schedule.
+      ByteVector k;
       /// Used in Rijndael's key schedule
       static const ByteVector rcon;
       /// Inverse S boxes
