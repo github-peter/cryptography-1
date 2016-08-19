@@ -6,4 +6,7 @@ C++ types and classes useful for the Coursera course Cryptography I. The course 
 * Byte: Type definition of a byte (8 bit unsigned int)
 * ByteSequence: Base class for a sequence of bytes. Includes some useful methods for such sequences, e.g. XOR.
 * ByteVector: Type defined as a vector of Bytes.
+* CBC: A cipher block chain, uses the PRP.
+* CTR: Counter mode, uses the PRP.
 * HexByteSequence: A ByteSequence constructed from an hex encoded string.
+* PRP: A base class for Pseudo Random Permutations.
