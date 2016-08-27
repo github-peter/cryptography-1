@@ -25,21 +25,21 @@ class SHA256
    public:
       /// @return The 256 bit SHA-256 hash of the input sequence of bytes.
       static ByteSequence Hash(const ByteSequence& data) {
-         SHA256_CTX ctx;
+         CTX ctx;
          Byte hash[32];
 
-         SHA256Update(&ctx, data);
-         SHA256Final(&ctx, hash);
+         Update(&ctx, data);
+         Final(&ctx, hash);
 
          return ByteSequence(ByteVector(hash,hash+32));
       }
    private:
-      struct SHA256_CTX {
+      struct CTX {
          Byte data[64];
          uint32_t datalen;
          uint32_t bitlen[2];
          uint32_t state[8];
-         SHA256_CTX()
+         CTX()
          {
             datalen = 0;
             bitlen[0] = 0;
@@ -55,7 +55,7 @@ class SHA256
          }
       };
       static const uint32_t k[64];
-      static void SHA256Transform(SHA256_CTX *ctx, Byte data[])
+      static void Transform(CTX *ctx, Byte data[])
       {
          uint32_t a, b, c, d, e, f, g, h, i, j, t1, t2, m[64];
 
@@ -96,20 +96,20 @@ class SHA256
          ctx->state[7] += h;
       }
 
-      static void SHA256Update(SHA256_CTX *ctx, const ByteSequence& data )
+      static void Update(CTX *ctx, const ByteSequence& data )
       {
          for (uint32_t i = 0; i < data.Size(); ++i) {
             ctx->data[i] = data[i];
             ctx->datalen++;
             if (ctx->datalen == 64) {
-               SHA256Transform(ctx, ctx->data);
+               Transform(ctx, ctx->data);
                DBL_INT_ADD(ctx->bitlen[0], ctx->bitlen[1], 512);
                ctx->datalen = 0;
             }
          }
       }
 
-      static void SHA256Final(SHA256_CTX *ctx, Byte hash[])
+      static void Final(CTX *ctx, Byte hash[])
       {
          uint32_t i = ctx->datalen;
 
@@ -125,7 +125,7 @@ class SHA256
             while (i < 64)
                ctx->data[i++] = 0x00;
 
-            SHA256Transform(ctx, ctx->data);
+            Transform(ctx, ctx->data);
             memset(ctx->data, 0, 56);
          }
 
@@ -138,7 +138,7 @@ class SHA256
          ctx->data[58] = ctx->bitlen[1] >> 8;
          ctx->data[57] = ctx->bitlen[1] >> 16;
          ctx->data[56] = ctx->bitlen[1] >> 24;
-         SHA256Transform(ctx, ctx->data);
+         Transform(ctx, ctx->data);
 
          for (i = 0; i < 4; ++i) {
             hash[i] = (ctx->state[0] >> (24 - i * 8)) & 0x000000ff;
