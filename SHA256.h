@@ -28,7 +28,6 @@ class SHA256
          SHA256_CTX ctx;
          Byte hash[32];
 
-         SHA256Init(&ctx);
          SHA256Update(&ctx, data);
          SHA256Final(&ctx, hash);
 
@@ -40,6 +39,20 @@ class SHA256
          uint32_t datalen;
          uint32_t bitlen[2];
          uint32_t state[8];
+         SHA256_CTX()
+         {
+            datalen = 0;
+            bitlen[0] = 0;
+            bitlen[1] = 0;
+            state[0] = 0x6a09e667;
+            state[1] = 0xbb67ae85;
+            state[2] = 0x3c6ef372;
+            state[3] = 0xa54ff53a;
+            state[4] = 0x510e527f;
+            state[5] = 0x9b05688c;
+            state[6] = 0x1f83d9ab;
+            state[7] = 0x5be0cd19;
+         }
       };
       static const uint32_t k[64];
       static void SHA256Transform(SHA256_CTX *ctx, Byte data[])
@@ -81,21 +94,6 @@ class SHA256
          ctx->state[5] += f;
          ctx->state[6] += g;
          ctx->state[7] += h;
-      }
-
-      static void SHA256Init(SHA256_CTX *ctx)
-      {
-         ctx->datalen = 0;
-         ctx->bitlen[0] = 0;
-         ctx->bitlen[1] = 0;
-         ctx->state[0] = 0x6a09e667;
-         ctx->state[1] = 0xbb67ae85;
-         ctx->state[2] = 0x3c6ef372;
-         ctx->state[3] = 0xa54ff53a;
-         ctx->state[4] = 0x510e527f;
-         ctx->state[5] = 0x9b05688c;
-         ctx->state[6] = 0x1f83d9ab;
-         ctx->state[7] = 0x5be0cd19;
       }
 
       static void SHA256Update(SHA256_CTX *ctx, const ByteSequence& data )
