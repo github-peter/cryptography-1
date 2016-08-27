@@ -32,11 +32,7 @@ class SHA256
          SHA256Update(&ctx, data);
          SHA256Final(&ctx, hash);
 
-         ByteSequence bs(ByteVector(32));
-         for (int i = 0; i < 32; i++) {
-            bs[i] = hash[i];
-         }
-         return bs;
+         return ByteSequence(ByteVector(hash,hash+32));
       }
    private:
       struct SHA256_CTX {
