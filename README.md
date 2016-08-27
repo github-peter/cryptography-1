@@ -10,3 +10,4 @@ C++ types and classes useful for the Coursera course Cryptography I. The course 
 * CTR: Counter mode, uses the PRP.
 * HexByteSequence: A ByteSequence constructed from an hex encoded string.
 * PRP: A base class for Pseudo Random Permutations.
+* SHA256: A SHA-256 hashing class.
