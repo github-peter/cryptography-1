@@ -23,6 +23,7 @@
 class SHA256
 {
    public:
+      /// @return The 256 bit SHA-256 hash of the input sequence of bytes.
       static ByteSequence Hash(const ByteSequence& data) {
          SHA256_CTX ctx;
          Byte hash[32];
