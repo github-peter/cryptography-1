@@ -5,7 +5,6 @@
 #include "ByteSequence.h"
 
 #include <cstdint>
-#include <string>
 
 #define DBL_INT_ADD(a,b,c) if (a > 0xffffffff - (c)) ++b; a += c;
 #define ROTLEFT(a,b) (((a) << (b)) | ((a) >> (32-(b))))
@@ -24,22 +23,19 @@
 class SHA256
 {
    public:
-      static std::string Hash(const ByteSequence& data) {
+      static ByteSequence Hash(const ByteSequence& data) {
          SHA256_CTX ctx;
          Byte hash[32];
-         std::string hashStr = "";
 
          SHA256Init(&ctx);
          SHA256Update(&ctx, data);
          SHA256Final(&ctx, hash);
 
-         char s[3];
+         ByteSequence bs(ByteVector(32));
          for (int i = 0; i < 32; i++) {
-            sprintf(s, "%02x", hash[i]);
-            hashStr += s;
+            bs[i] = hash[i];
          }
-
-         return hashStr;
+         return bs;
       }
    private:
       struct SHA256_CTX {
