@@ -5,153 +5,148 @@
 #include "ByteSequence.h"
 
 #include <cstdint>
+#include <sstream>
 
-#define DBL_INT_ADD(a,b,c) if (a > 0xffffffff - (c)) ++b; a += c;
-#define ROTLEFT(a,b) (((a) << (b)) | ((a) >> (32-(b))))
-#define ROTRIGHT(a,b) (((a) >> (b)) | ((a) << (32-(b))))
-
-#define CH(x,y,z) (((x) & (y)) ^ (~(x) & (z)))
-#define MAJ(x,y,z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
-#define EP0(x) (ROTRIGHT(x,2) ^ ROTRIGHT(x,13) ^ ROTRIGHT(x,22))
-#define EP1(x) (ROTRIGHT(x,6) ^ ROTRIGHT(x,11) ^ ROTRIGHT(x,25))
-#define SIG0(x) (ROTRIGHT(x,7) ^ ROTRIGHT(x,18) ^ ((x) >> 3))
-#define SIG1(x) (ROTRIGHT(x,17) ^ ROTRIGHT(x,19) ^ ((x) >> 10))
+#define SHA2_SHFR(x, n)    (x >> n)
+#define SHA2_ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
+#define SHA2_ROTL(x, n)   ((x << n) | (x >> ((sizeof(x) << 3) - n)))
+#define SHA2_CH(x, y, z)  ((x & y) ^ (~x & z))
+#define SHA2_MAJ(x, y, z) ((x & y) ^ (x & z) ^ (y & z))
+#define SHA256_F1(x) (SHA2_ROTR(x,  2) ^ SHA2_ROTR(x, 13) ^ SHA2_ROTR(x, 22))
+#define SHA256_F2(x) (SHA2_ROTR(x,  6) ^ SHA2_ROTR(x, 11) ^ SHA2_ROTR(x, 25))
+#define SHA256_F3(x) (SHA2_ROTR(x,  7) ^ SHA2_ROTR(x, 18) ^ SHA2_SHFR(x,  3))
+#define SHA256_F4(x) (SHA2_ROTR(x, 17) ^ SHA2_ROTR(x, 19) ^ SHA2_SHFR(x, 10))
+#define SHA2_UNPACK32(x, str)                 \
+{                                             \
+   *((str) + 3) = (Byte) ((x)      );       \
+   *((str) + 2) = (Byte) ((x) >>  8);       \
+   *((str) + 1) = (Byte) ((x) >> 16);       \
+   *((str) + 0) = (Byte) ((x) >> 24);       \
+}
+#define SHA2_PACK32(str, x)                   \
+{                                             \
+   *(x) = ((uint32_t) *((str) + 3)      )    \
+   | ((uint32_t) *((str) + 2) <<  8)    \
+   | ((uint32_t) *((str) + 1) << 16)    \
+   | ((uint32_t) *((str) + 0) << 24);   \
+}
 
 /// SHA-256 collision resistant hash function.
-/// Code inspired from
-/// https://www.programmingalgorithms.com/algorithm/sha256?lang=C%2B%2B
 class SHA256
 {
    public:
       /// @return The 256 bit SHA-256 hash of the input sequence of bytes.
       static ByteSequence Hash(const ByteSequence& data) {
-         CTX ctx;
+         SHA256 ctx;
          Byte hash[32];
 
-         Update(&ctx, data);
-         Final(&ctx, hash);
+         std::ostringstream oss;
+         oss << data.ToString();
+
+         ctx.Update((const Byte*)oss.str().c_str(),data.Size());
+         ctx.Final(hash);
 
          return ByteSequence(ByteVector(hash,hash+32));
       }
    private:
-      struct CTX {
-         Byte data[64];
-         uint32_t datalen;
-         uint32_t bitlen[2];
-         uint32_t state[8];
-         CTX()
-         {
-            datalen = 0;
-            bitlen[0] = 0;
-            bitlen[1] = 0;
-            state[0] = 0x6a09e667;
-            state[1] = 0xbb67ae85;
-            state[2] = 0x3c6ef372;
-            state[3] = 0xa54ff53a;
-            state[4] = 0x510e527f;
-            state[5] = 0x9b05688c;
-            state[6] = 0x1f83d9ab;
-            state[7] = 0x5be0cd19;
-         }
-      };
+      static const uint32_t SHA224_256_BLOCK_SIZE = ( 512 / 8 );
+      static const uint32_t DIGEST_SIZE = ( 256 / 8);
       static const uint32_t k[64];
-      static void Transform(CTX *ctx, Byte data[])
+      uint32_t m_tot_len;
+      uint32_t m_len;
+      Byte m_block[2*SHA224_256_BLOCK_SIZE];
+      uint32_t m_h[8];
+
+      SHA256()
       {
-         uint32_t a, b, c, d, e, f, g, h, i, j, t1, t2, m[64];
-
-         for (i = 0, j = 0; i < 16; ++i, j += 4)
-            m[i] = (data[j] << 24) | (data[j + 1] << 16) | (data[j + 2] << 8) | (data[j + 3]);
-         for (; i < 64; ++i)
-            m[i] = SIG1(m[i - 2]) + m[i - 7] + SIG0(m[i - 15]) + m[i - 16];
-
-         a = ctx->state[0];
-         b = ctx->state[1];
-         c = ctx->state[2];
-         d = ctx->state[3];
-         e = ctx->state[4];
-         f = ctx->state[5];
-         g = ctx->state[6];
-         h = ctx->state[7];
-
-         for (i = 0; i < 64; ++i) {
-            t1 = h + EP1(e) + CH(e, f, g) + k[i] + m[i];
-            t2 = EP0(a) + MAJ(a, b, c);
-            h = g;
-            g = f;
-            f = e;
-            e = d + t1;
-            d = c;
-            c = b;
-            b = a;
-            a = t1 + t2;
-         }
-
-         ctx->state[0] += a;
-         ctx->state[1] += b;
-         ctx->state[2] += c;
-         ctx->state[3] += d;
-         ctx->state[4] += e;
-         ctx->state[5] += f;
-         ctx->state[6] += g;
-         ctx->state[7] += h;
+         m_h[0] = 0x6a09e667;
+         m_h[1] = 0xbb67ae85;
+         m_h[2] = 0x3c6ef372;
+         m_h[3] = 0xa54ff53a;
+         m_h[4] = 0x510e527f;
+         m_h[5] = 0x9b05688c;
+         m_h[6] = 0x1f83d9ab;
+         m_h[7] = 0x5be0cd19;
+         m_len = 0;
+         m_tot_len = 0;
       }
-
-      static void Update(CTX *ctx, const ByteSequence& data )
+      void Final(Byte* digest)
       {
-         for (uint32_t i = 0; i < data.Size(); ++i) {
-            ctx->data[i] = data[i];
-            ctx->datalen++;
-            if (ctx->datalen == 64) {
-               Transform(ctx, ctx->data);
-               DBL_INT_ADD(ctx->bitlen[0], ctx->bitlen[1], 512);
-               ctx->datalen = 0;
+         unsigned int block_nb;
+         unsigned int pm_len;
+         unsigned int len_b;
+         int i;
+         block_nb = (1 + ((SHA224_256_BLOCK_SIZE - 9)
+                  < (m_len % SHA224_256_BLOCK_SIZE)));
+         len_b = (m_tot_len + m_len) << 3;
+         pm_len = block_nb << 6;
+         memset(m_block + m_len, 0, pm_len - m_len);
+         m_block[m_len] = 0x80;
+         SHA2_UNPACK32(len_b, m_block + pm_len - 4);
+         Transform(m_block, block_nb);
+         for (i = 0 ; i < 8; i++) {
+            SHA2_UNPACK32(m_h[i], &digest[i << 2]);
+         }
+      }
+      void Transform(const Byte* message, unsigned int block_nb)
+      {
+         uint32_t w[64];
+         uint32_t wv[8];
+         uint32_t t1, t2;
+         const unsigned char *sub_block;
+         int i;
+         int j;
+         for (i = 0; i < (int) block_nb; i++) {
+            sub_block = message + (i << 6);
+            for (j = 0; j < 16; j++) {
+               SHA2_PACK32(&sub_block[j << 2], &w[j]);
+            }
+            for (j = 16; j < 64; j++) {
+               w[j] =  SHA256_F4(w[j -  2]) + w[j -  7] + SHA256_F3(w[j - 15]) + w[j - 16];
+            }
+            for (j = 0; j < 8; j++) {
+               wv[j] = m_h[j];
+            }
+            for (j = 0; j < 64; j++) {
+               t1 = wv[7] + SHA256_F2(wv[4]) + SHA2_CH(wv[4], wv[5], wv[6])
+                  + k[j] + w[j];
+               t2 = SHA256_F1(wv[0]) + SHA2_MAJ(wv[0], wv[1], wv[2]);
+               wv[7] = wv[6];
+               wv[6] = wv[5];
+               wv[5] = wv[4];
+               wv[4] = wv[3] + t1;
+               wv[3] = wv[2];
+               wv[2] = wv[1];
+               wv[1] = wv[0];
+               wv[0] = t1 + t2;
+            }
+            for (j = 0; j < 8; j++) {
+               m_h[j] += wv[j];
             }
          }
       }
-
-      static void Final(CTX *ctx, Byte hash[])
+      void Update(const Byte* message, unsigned int len )
       {
-         uint32_t i = ctx->datalen;
-
-         if (ctx->datalen < 56) {
-            ctx->data[i++] = 0x80;
-
-            while (i < 56)
-               ctx->data[i++] = 0x00;
+         unsigned int block_nb;
+         unsigned int new_len, rem_len, tmp_len;
+         const unsigned char *shifted_message;
+         tmp_len = SHA224_256_BLOCK_SIZE - m_len;
+         rem_len = len < tmp_len ? len : tmp_len;
+         memcpy(&m_block[m_len], message, rem_len);
+         if (m_len + len < SHA224_256_BLOCK_SIZE) {
+            m_len += len;
+            return;
          }
-         else {
-            ctx->data[i++] = 0x80;
-
-            while (i < 64)
-               ctx->data[i++] = 0x00;
-
-            Transform(ctx, ctx->data);
-            memset(ctx->data, 0, 56);
-         }
-
-         DBL_INT_ADD(ctx->bitlen[0], ctx->bitlen[1], ctx->datalen * 8);
-         ctx->data[63] = ctx->bitlen[0];
-         ctx->data[62] = ctx->bitlen[0] >> 8;
-         ctx->data[61] = ctx->bitlen[0] >> 16;
-         ctx->data[60] = ctx->bitlen[0] >> 24;
-         ctx->data[59] = ctx->bitlen[1];
-         ctx->data[58] = ctx->bitlen[1] >> 8;
-         ctx->data[57] = ctx->bitlen[1] >> 16;
-         ctx->data[56] = ctx->bitlen[1] >> 24;
-         Transform(ctx, ctx->data);
-
-         for (i = 0; i < 4; ++i) {
-            hash[i] = (ctx->state[0] >> (24 - i * 8)) & 0x000000ff;
-            hash[i + 4] = (ctx->state[1] >> (24 - i * 8)) & 0x000000ff;
-            hash[i + 8] = (ctx->state[2] >> (24 - i * 8)) & 0x000000ff;
-            hash[i + 12] = (ctx->state[3] >> (24 - i * 8)) & 0x000000ff;
-            hash[i + 16] = (ctx->state[4] >> (24 - i * 8)) & 0x000000ff;
-            hash[i + 20] = (ctx->state[5] >> (24 - i * 8)) & 0x000000ff;
-            hash[i + 24] = (ctx->state[6] >> (24 - i * 8)) & 0x000000ff;
-            hash[i + 28] = (ctx->state[7] >> (24 - i * 8)) & 0x000000ff;
-         }
+         new_len = len - rem_len;
+         block_nb = new_len / SHA224_256_BLOCK_SIZE;
+         shifted_message = message + rem_len;
+         Transform(m_block, 1);
+         Transform(shifted_message, block_nb);
+         rem_len = new_len % SHA224_256_BLOCK_SIZE;
+         memcpy(m_block, &shifted_message[block_nb << 6], rem_len);
+         m_len = rem_len;
+         m_tot_len += (block_nb + 1) << 6;
       }
-
 };
 
 const uint32_t SHA256::k[64] = {
@@ -165,14 +160,16 @@ const uint32_t SHA256::k[64] = {
    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 };
 
-#undef DBL_INT_ADD
-#undef ROTLEFT
-#undef ROTRIGHT
-#undef CH
-#undef MAJ
-#undef EP0
-#undef EP1
-#undef SIG0
-#undef SIG1
+#undef SHA2_SHFR
+#undef SHA2_ROTR
+#undef SHA2_ROTL
+#undef SHA2_CH
+#undef SHA2_MAJ
+#undef SHA256_F1
+#undef SHA256_F2
+#undef SHA256_F3
+#undef SHA256_F4
+#undef SHA2_UNPACK32
+#undef SHA2_PACK32
 
 #endif
