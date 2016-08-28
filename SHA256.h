@@ -5,7 +5,6 @@
 #include "ByteSequence.h"
 
 #include <cstdint>
-#include <sstream>
 
 #define SHA2_SHFR(x, n)    (x >> n)
 #define SHA2_ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))
@@ -40,10 +39,9 @@ class SHA256
          SHA256 ctx;
          Byte hash[32];
 
-         std::ostringstream oss;
-         oss << data.ToString();
+         ByteVector bytes(data.ToByteVector());
 
-         ctx.Update((const Byte*)oss.str().c_str(),data.Size());
+         ctx.Update(&bytes[0],bytes.size());
          ctx.Final(hash);
 
          return ByteSequence(ByteVector(hash,hash+32));
