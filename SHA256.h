@@ -91,7 +91,7 @@ class SHA256
          uint32_t w[64];
          uint32_t wv[8];
          uint32_t t1, t2;
-         const unsigned char *sub_block;
+         const Byte* sub_block;
          int i;
          int j;
          for (i = 0; i < (int) block_nb; i++) {
@@ -134,7 +134,7 @@ class SHA256
       {
          unsigned int block_nb;
          unsigned int new_len, rem_len, tmp_len;
-         const unsigned char *shifted_message;
+         const Byte* shifted_message;
          tmp_len = SHA224_256_BLOCK_SIZE - m_len;
          rem_len = len < tmp_len ? len : tmp_len;
          memcpy(&m_block[m_len], message, rem_len);
