@@ -127,12 +127,12 @@ class ByteSequence
             throw std::invalid_argument(
                   "ByteSequence::DecodeHexStringToByteVector: Argument has"
                   " odd length.");
-         // Need uppercase since we look into hexchars.
+         // Need lowercase since we look into hexchars.
          std::transform(
                hex_encoded_string.begin(),
                hex_encoded_string.end(),
                hex_encoded_string.begin(),
-               std::ptr_fun<int, int>(std::toupper));
+               std::ptr_fun<int, int>(std::tolower));
 
          ByteVector result;
          result.reserve(len/2);
@@ -160,7 +160,7 @@ class ByteSequence
          return result;
       }
    private:
-      static constexpr const char* const hexchars = "0123456789ABCDEF";
+      static constexpr const char* const hexchars = "0123456789abcdef";
       ByteVector characters;
       ByteSequence(ByteVector::size_type size = 0):characters(size) {}
 };
